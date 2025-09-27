@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class BotonColor : MonoBehaviour
 {
     public Button boton;
-    public bool derecho = false; // true = derecho, false = izquierdo
+    public bool derecho = false; // true = derecho (cliente), false = izquierdo (servidor)
     public int color = 1; // 1 = rojo, 2 = verde, 3 = azul
 
     void Start()
@@ -14,15 +14,17 @@ public class BotonColor : MonoBehaviour
 
     void Update()
     {
-        // Solo activo si es turno correcto y lado izquierdo (servidor = izquierdo)
-        bool puedeElegir = (!derecho && GameManager.Instance.turno == 1) || (derecho && GameManager.Instance.turno == 2);
+        // Solo activo si es el turno correcto y es el rol correcto
+        bool puedeElegir = (!derecho && GameManager.Instance.turno == 1 && GameManager.Instance.esServidor) ||
+                           (derecho && GameManager.Instance.turno == 2 && !GameManager.Instance.esServidor);
         boton.interactable = puedeElegir;
     }
 
     void OnClick()
     {
-        // Solo procesa si lado izquierdo y turno correcto
-        if ((!derecho && GameManager.Instance.turno == 1) || (derecho && GameManager.Instance.turno == 2))
+        // Solo procesa si el turno y rol coinciden
+        if ((!derecho && GameManager.Instance.turno == 1 && GameManager.Instance.esServidor) ||
+            (derecho && GameManager.Instance.turno == 2 && !GameManager.Instance.esServidor))
         {
             if (!derecho) // izquierdo = servidor
             {
@@ -37,4 +39,5 @@ public class BotonColor : MonoBehaviour
         }
     }
 }
+
 

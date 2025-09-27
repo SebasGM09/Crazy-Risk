@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class BotonListo : MonoBehaviour
 {
     public Button boton;
-    public bool derecho = false; // true = derecho, false = izquierdo
+    public bool derecho = false; // true = derecho (cliente), false = izquierdo (servidor)
 
     void Start()
     {
@@ -14,26 +14,29 @@ public class BotonListo : MonoBehaviour
 
     void Update()
     {
-        // Solo activo si es turno correcto y lado coincide
-        bool puedeActivar = (!derecho && GameManager.Instance.turno == 1) || (derecho && GameManager.Instance.turno == 2);
+        // Solo activo si es turno correcto y es el rol correcto
+        bool puedeActivar = (!derecho && GameManager.Instance.turno == 1 && GameManager.Instance.esServidor) ||
+                            (derecho && GameManager.Instance.turno == 2 && !GameManager.Instance.esServidor);
         boton.interactable = puedeActivar;
     }
 
     void OnClick()
     {
-        // Validaciones básicas
+        // Validaciones básicas y verificación de turno/rol
         bool aliasCorrecto = derecho ? GameManager.Instance.jugador2 != null : GameManager.Instance.jugador1 != null;
         bool colorCorrecto = derecho ? GameManager.Instance.color2 != 0 : GameManager.Instance.color1 != 0;
 
-        if (!aliasCorrecto || !colorCorrecto) return; // No hacer nada si falta info
+        bool rolCorrecto = (!derecho && GameManager.Instance.turno == 1 && GameManager.Instance.esServidor) ||
+                            (derecho && GameManager.Instance.turno == 2 && !GameManager.Instance.esServidor);
 
-        // Si lado izquierdo (servidor) solo cambia turno
-        if (!derecho)
+        if (!aliasCorrecto || !colorCorrecto || !rolCorrecto) return; // No hacer nada si falta info o rol incorrecto
+
+        if (!derecho) // izquierdo = servidor
         {
             GameManager.Instance.CambiarTurno();
             Debug.Log("Listo lado izquierdo: turno cambiado");
         }
-        else // lado derecho (cliente)
+        else // derecho = cliente
         {
             // Verificar que jugador2 y color2 no coincidan con jugador1 y color1
             if (GameManager.Instance.jugador2 == GameManager.Instance.jugador1 ||
@@ -45,7 +48,10 @@ public class BotonListo : MonoBehaviour
 
             GameManager.Instance.CambiarTurno();
             Debug.Log("Listo lado derecho: abriendo escena del juego");
+
             SceneManager.LoadScene("GameScene");
+            GameManager.Instance.DistribuirTerritorios();
         }
     }
 }
+
